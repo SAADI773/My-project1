@@ -1,0 +1,673 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RETRO TERMINAL // v2.0 // AI-ASSISTANT READY</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* classic terminal feel, but text can be selected if needed */
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f0a, #030603);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', 'Fira Code', 'VT323', monospace;
+            padding: 1.5rem;
+        }
+
+        /* MAIN TERMINAL WINDOW */
+        .terminal {
+            background-color: #000000;
+            background-image: linear-gradient(0deg, #001100 1px, transparent 1px);
+            background-size: 100% 4px;
+            width: 100%;
+            max-width: 950px;
+            border-radius: 18px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.8), 0 0 0 2px #2a6e2a, 0 0 0 5px #0f2b0f;
+            border: 1px solid #1e7e1e;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* CRT header */
+        .crt-header {
+            background: #0f1e0f;
+            padding: 0.7rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #2c9e2c;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: #8bc48b;
+            text-shadow: 0 0 3px #3eff3e;
+        }
+        .title-led {
+            display: flex;
+            gap: 12px;
+        }
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3eff3e;
+            box-shadow: 0 0 5px #00ff00;
+            animation: pulseLed 1.8s infinite;
+        }
+        .led.red {
+            background: #ff4444;
+            box-shadow: 0 0 4px red;
+            animation: pulseRed 2s infinite;
+        }
+        @keyframes pulseLed {
+            0% { opacity: 0.4; transform: scale(0.9);}
+            100% { opacity: 1; transform: scale(1.1);}
+        }
+        @keyframes pulseRed {
+            0% { opacity: 0.5;}
+            100% { opacity: 1;}
+        }
+        .machine-id {
+            font-family: monospace;
+            font-size: 0.7rem;
+            background: #0e2a0e;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+        }
+
+        /* SCREEN CONTENT */
+        .screen {
+            padding: 1.8rem 2rem 2rem 2rem;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            background: #000000cc;
+            backdrop-filter: blur(1px);
+        }
+
+        /* ASCII welcome */
+        .ascii-logo {
+            color: #4fe04f;
+            font-size: 0.65rem;
+            line-height: 1.2;
+            white-space: pre;
+            font-weight: bold;
+            text-shadow: 0 0 2px #2eff2e;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid #3eff3e;
+            padding-left: 1rem;
+        }
+
+        /* output area (messages) */
+        .output-area {
+            flex: 1;
+            background: #000000aa;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin: 0.8rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #b3ffb3;
+            border: 1px solid #2d822d;
+            box-shadow: inset 0 0 15px rgba(0,30,0,0.6);
+            min-height: 220px;
+            max-height: 280px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            scroll-behavior: smooth;
+        }
+        .output-line {
+            margin: 0.4rem 0;
+            border-left: 2px solid #3eff3e;
+            padding-left: 10px;
+            animation: fadeSlide 0.2s ease-out;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateX(-5px);}
+            to { opacity: 1; transform: translateX(0);}
+        }
+        .cmd-line {
+            color: #aaffaa;
+            background: #0c1a0c;
+            padding: 0.1rem 0.3rem;
+            border-radius: 6px;
+        }
+
+        /* Input row */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 15px;
+            background: #031003;
+            padding: 0.8rem 1rem;
+            border-radius: 60px;
+            border: 1px solid #2b8f2b;
+        }
+        .prompt {
+            color: #6eff6e;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-shadow: 0 0 5px #00ff66;
+            letter-spacing: 1px;
+        }
+        #commandInput {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #d0ffd0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex: 1;
+            caret-color: #3eff3e;
+        }
+        #commandInput::placeholder {
+            color: #2c6e2c;
+            font-size: 0.9rem;
+        }
+
+        /* custom blink cursor effect (CSS fake, but actual caret works) */
+        .cursor-blink {
+            display: inline-block;
+            width: 10px;
+            height: 1.2rem;
+            background-color: #3eff3e;
+            box-shadow: 0 0 5px #3eff3e;
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blinkStep 1s step-end infinite;
+        }
+        @keyframes blinkStep {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* command hint bar */
+        .hint-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #2eaa2e;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge {
+            background: #0f2a0f;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.1s linear;
+        }
+        .badge:hover {
+            background: #2d732d;
+            color: #eaffea;
+            text-shadow: 0 0 2px green;
+        }
+
+        /* new FEATURE: AI assistant toggle */
+        .ai-assist {
+            background: #0a1f0a;
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+        button {
+            background: none;
+            border: 1px solid #45e045;
+            color: #a3f5a3;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        button:hover {
+            background: #2e6e2e;
+            color: black;
+            box-shadow: 0 0 6px #3eff3e;
+        }
+
+        /* sound toggle */
+        .sound-toggle {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* SCROLLBAR */
+        .output-area::-webkit-scrollbar {
+            width: 6px;
+            background: #0e2e0e;
+        }
+        .output-area::-webkit-scrollbar-thumb {
+            background: #3eff3e;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .screen { padding: 1rem; }
+            .ascii-logo { font-size: 0.45rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal">
+    <div class="crt-header">
+        <div class="title-led">
+            <div class="led"></div>
+            <div class="led red"></div>
+            <span>⚡ RETRO TERMINAL v2.0 ⚡</span>
+        </div>
+        <div class="machine-id">[SYSTEM: ONLINE] | AI:CORE</div>
+    </div>
+
+    <div class="screen">
+        <div class="ascii-logo">
+            ╔═══════════════════════════════════════╗<br>
+            ║   ██▀███  ▓█████▄  ▒█████   ██▓     ║<br>
+            ║  ▓██ ▒ ██▒▒██▀ ██▌▒██▒  ██▒▓██▒     ║<br>
+            ║  ▓██ ░▄█ ▒░██   █▌▒██░  ██▒▒██░     ║<br>
+            ║  ▒██▀▀█▄  ░▓█▄   ▌▒██   ██░▒██░     ║<br>
+            ║  ░██▓ ▒██▒░▒████▓ ░ ████▓▒░░██████▒ ║<br>
+            ║  ░ ▒▓ ░▒▓░ ▒▒▓  ▒ ░ ▒░▒░▒░ ░ ▒░▓  ░ ║<br>
+            ╚═══════════════════════════════════════╝<br>
+            > TERMINAL_READY. TYPE 'help' FOR COMMANDS.
+        </div>
+
+        <div id="output" class="output-area">
+            <div class="output-line">[✔] SYSTEM BOOT SEQUENCE COMPLETE</div>
+            <div class="output-line">[✔] CRT EMULATION ACTIVE | 80s MODE ENGAGED</div>
+            <div class="output-line">[✨] NEW FEATURES: AI_ASSISTANT, THEME_TOGGLE, SOUND_FX</div>
+            <div class="output-line">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+            <div class="output-line">💡 Try: <span class="cmd-line">help</span> , <span class="cmd-line">skills</span> , <span class="cmd-line">contact</span> , <span class="cmd-line">ai</span> , <span class="cmd-line">theme</span> , <span class="cmd-line">clear</span></div>
+        </div>
+
+        <div class="input-row">
+            <span class="prompt">➜ USER@RETRO:~$</span>
+            <input type="text" id="commandInput" placeholder="type command..." autofocus>
+            <div class="cursor-blink"></div>
+        </div>
+
+        <div class="hint-bar">
+            <div class="badge" data-cmd="help">📟 help</div>
+            <div class="badge" data-cmd="skills">⚙️ skills</div>
+            <div class="badge" data-cmd="contact">📡 contact</div>
+            <div class="badge" data-cmd="ai">🤖 ai</div>
+            <div class="badge" data-cmd="theme">🎨 theme</div>
+            <div class="badge" data-cmd="clear">🗑️ clear</div>
+            <div class="ai-assist">
+                <span>🧠 AI_READY</span>
+                <button id="aiSuggestionBtn">✨ Suggest cmd</button>
+            </div>
+            <div class="sound-toggle">
+                <span>🔊</span>
+                <button id="toggleSoundBtn">MUTE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================== NEW FEATURES ==========================
+    // 1. AI ASSISTANT (contextual replies + random tips)
+    // 2. THEME SWITCHER (Green / Amber Phosphor)
+    // 3. SOUND FX (beep / click using Web Audio) with toggle
+    // 4. Dynamic command history (up/down arrow)
+    // 5. Custom ASCII animations on certain commands
+    // 6. Easter Egg: "matrix" command
+    // ===============================================================
+
+    const outputDiv = document.getElementById('output');
+    const commandInput = document.getElementById('commandInput');
+    
+    // Sound Context (lazy init)
+    let audioCtx = null;
+    let soundEnabled = true;
+    const soundToggleBtn = document.getElementById('toggleSoundBtn');
+    
+    function initAudio() {
+        if (!audioCtx && soundEnabled) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+    
+    function playBeep(type = 'click') {
+        if (!soundEnabled) return;
+        try {
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            if (type === 'click') {
+                osc.frequency.value = 880;
+                gain.gain.value = 0.15;
+                osc.type = 'sine';
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.15);
+                osc.stop(now + 0.15);
+            } else if (type === 'error') {
+                osc.frequency.value = 220;
+                gain.gain.value = 0.1;
+                osc.type = 'square';
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                osc.stop(now + 0.2);
+            } else if (type === 'success') {
+                osc.frequency.value = 1200;
+                gain.gain.value = 0.1;
+                osc.type = 'triangle';
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                osc.stop(now + 0.1);
+            }
+        } catch(e) { console.warn("audio blocked"); }
+    }
+    
+    soundToggleBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundToggleBtn.textContent = soundEnabled ? "MUTE" : "UNMUTE";
+        if(soundEnabled && !audioCtx) {
+            // allow reinit
+        }
+        playBeep('click');
+        addOutputLine(`🔊 Sound FX ${soundEnabled ? "ACTIVATED" : "DEACTIVATED"}`);
+    });
+    
+    // Command history (up/down)
+    let history = [];
+    let historyIndex = -1;
+    
+    function addOutputLine(text, isError = false) {
+        const line = document.createElement('div');
+        line.className = 'output-line';
+        line.style.borderLeftColor = isError ? '#ff7777' : '#3eff3e';
+        line.style.color = isError ? '#ffaaaa' : '#b3ffb3';
+        line.innerHTML = text;
+        outputDiv.appendChild(line);
+        line.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if(!isError) playBeep('click');
+        else playBeep('error');
+    }
+    
+    function clearOutput() {
+        outputDiv.innerHTML = '';
+        addOutputLine('[ SYSTEM ] Screen cleared.');
+        addOutputLine('💡 Type "help" to see available commands.');
+    }
+    
+    // THEME toggling (new feature)
+    let currentTheme = 'green'; // green or amber
+    function toggleTheme() {
+        if(currentTheme === 'green') {
+            // switch to AMBER
+            document.documentElement.style.setProperty('--amber-color', '#ffb347');
+            const style = document.createElement('style');
+            style.id = 'amberThemeStyle';
+            if(document.getElementById('amberThemeStyle')) document.getElementById('amberThemeStyle').remove();
+            style.textContent = `
+                .terminal { box-shadow: 0 0 0 2px #b87c2e, 0 0 0 5px #3f2a0f; border-color: #c9781e; }
+                .crt-header { background: #2a1f0a; border-bottom: 2px solid #ffa52e; color: #ffcd94; text-shadow: 0 0 3px #ffb347; }
+                .output-area { color: #ffdd99; border-color: #ffaa44; box-shadow: inset 0 0 10px #3a2a10; }
+                .output-line { border-left-color: #ffb347; color: #ffdd99; }
+                .prompt { color: #ffb74d; text-shadow: 0 0 3px #ffa500; }
+                #commandInput { color: #ffdd99; caret-color: #ffaa33; }
+                .input-row { border-color: #ff9f2e; background: #1f1706; }
+                .badge:hover { background: #b87c2e; color: black; }
+                .ascii-logo { color: #ffb347; text-shadow: 0 0 2px #ffaa44; border-left-color: #ffaa44; }
+            `;
+            document.head.appendChild(style);
+            currentTheme = 'amber';
+            addOutputLine("🎨 THEME SWITCHED: AMBER PHOSPHOR (80s retro feel)");
+        } else {
+            // back to green
+            const oldStyle = document.getElementById('amberThemeStyle');
+            if(oldStyle) oldStyle.remove();
+            currentTheme = 'green';
+            addOutputLine("🌿 THEME SWITCHED: GREEN MONITOR (classic terminal)");
+        }
+        playBeep('success');
+    }
+    
+    // AI ASSISTANT feature : contextual reply & random tip
+    function aiAssistant(userCmdContext = null) {
+        const tips = [
+            "Try 'skills' to see my developer toolbox.",
+            "Use 'contact' to reach me via matrix/email.",
+            "You can type 'theme' to switch amber/green phosphor!",
+            "Command 'matrix' unleashes digital rain effect.",
+            "Up/Down arrows recall command history — oldschool cool.",
+            "I'm a retro AI with 64k of personality."
+        ];
+        let reply = "";
+        if(userCmdContext && userCmdContext.toLowerCase().includes('help')) {
+            reply = "🤖 AI: help is fundamental! Use 'skills', 'contact', 'ai', 'theme', 'clear', 'matrix'. Also 'about' for lore.";
+        } else if(userCmdContext && userCmdContext.toLowerCase().includes('skill')) {
+            reply = "🤖 AI: Based on skills, I see JavaScript wizardry, React, Node, Python, and retro UI design!";
+        } else {
+            const rand = Math.floor(Math.random() * tips.length);
+            reply = `🤖 AI Assistant: ${tips[rand]}`;
+        }
+        addOutputLine(reply);
+        return reply;
+    }
+    
+    // Easter egg: matrix digital rain effect (simulated text animation)
+    function matrixRain() {
+        addOutputLine("🌀 INITIATING MATRIX CODE STREAM... (press any key or type 'clear' to stop)");
+        let interval;
+        const originalOutput = outputDiv.innerHTML;
+        let rainActive = true;
+        const rainChars = "01アイウエオカキクケコ";
+        function rainFrame() {
+            if(!rainActive) return;
+            let randomText = "";
+            for(let i=0;i<40;i++) {
+                randomText += rainChars[Math.floor(Math.random() * rainChars.length)];
+            }
+            const rainDiv = document.createElement('div');
+            rainDiv.style.color = "#0f0";
+            rainDiv.style.fontSize = "0.8rem";
+            rainDiv.style.opacity = Math.random() * 0.7 + 0.3;
+            rainDiv.innerText = randomText.substring(0, 25);
+            outputDiv.appendChild(rainDiv);
+            if(outputDiv.children.length > 40) outputDiv.removeChild(outputDiv.children[0]);
+            rainDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        interval = setInterval(rainFrame, 130);
+        const stopMatrix = () => {
+            if(interval) clearInterval(interval);
+            rainActive = false;
+            addOutputLine("◼ MATRIX SEQUENCE TERMINATED. SYSTEM STABLE.");
+            document.removeEventListener('keydown', stopMatrixListener);
+        };
+        const stopMatrixListener = (e) => {
+            if(e.key !== undefined) {
+                stopMatrix();
+            }
+        };
+        document.addEventListener('keydown', stopMatrixListener);
+        // also clear command will kill but we store ref
+        window._matrixInterval = interval;
+        window._stopMatrix = stopMatrix;
+    }
+    
+    // Skills command with ASCII badge
+    function showSkills() {
+        addOutputLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        addOutputLine("🛠️  SKILLS & TOOLBOX (Retro Developer)");
+        addOutputLine("  > JavaScript/ES6+ | React | Vue");
+        addOutputLine("  > Python (Flask, Django) | Node.js");
+        addOutputLine("  > CSS Animations, Terminal Emulation");
+        addOutputLine("  > Web Audio API, AI prompting, UI/UX");
+        addOutputLine("  > Database: PostgreSQL, MongoDB");
+        addOutputLine("  > Retro Computing & 8bit aesthetics");
+        addOutputLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    }
+    
+    function showContact() {
+        addOutputLine("📡 CONTACT SIGNAL:");
+        addOutputLine("  ✉️  email: dev.retro@terminal.zone");
+        addOutputLine("  🐙 github: /retro_coder_80s");
+        addOutputLine("  🐦 X: @terminal_legacy");
+        addOutputLine("  💬 Matrix: @retro:matrix.terminal");
+        addOutputLine("  📟 PGP fingerprint: 0xDEADBEEF42");
+    }
+    
+    function showHelp() {
+        addOutputLine("┌──────────────────────────────────────────┐");
+        addOutputLine("│  AVAILABLE COMMANDS:                     │");
+        addOutputLine("│  help     - show this guide              │");
+        addOutputLine("│  skills   - developer expertise          │");
+        addOutputLine("│  contact  - reach out to me              │");
+        addOutputLine("│  ai       - invoke AI assistant          │");
+        addOutputLine("│  theme    - toggle Green/Amber display   │");
+        addOutputLine("│  clear    - clear terminal screen        │");
+        addOutputLine("│  matrix   - easter egg: matrix digital   │");
+        addOutputLine("│  about    - portfolio info               │");
+        addOutputLine("│  date     - show system time             │");
+        addOutputLine("└──────────────────────────────────────────┘");
+        addOutputLine("✨ NEW: AI suggestion button & sound effects ✨");
+    }
+    
+    function showAbout() {
+        addOutputLine("👾 RETRO TERMINAL PORTFOLIO — 1980s Cyberpunk Edition");
+        addOutputLine("⚡ Built with HTML/CSS/JS, custom animations, keyboard events");
+        addOutputLine("💡 Features: AI assistant (contextual), theme switcher, sound FX, command history, Matrix easter egg.");
+        addOutputLine("© 2025 // Designed by Terminal Wizard");
+    }
+    
+    function showDate() {
+        const now = new Date();
+        addOutputLine(`📅 System timestamp: ${now.toLocaleString()} (GMT${-now.getTimezoneOffset()/60})`);
+    }
+    
+    // process commands
+    function processCommand(cmdRaw) {
+        let cmd = cmdRaw.trim().toLowerCase();
+        if(cmd === "") return;
+        
+        // add to history
+        if(history.length === 0 || history[history.length-1] !== cmdRaw.trim()) {
+            history.push(cmdRaw.trim());
+            if(history.length > 30) history.shift();
+        }
+        historyIndex = history.length;
+        
+        addOutputLine(`➜ ${cmdRaw}`, false);
+        
+        switch(cmd) {
+            case 'help': showHelp(); break;
+            case 'skills': showSkills(); break;
+            case 'contact': showContact(); break;
+            case 'ai': aiAssistant(); break;
+            case 'theme': toggleTheme(); break;
+            case 'clear': clearOutput(); break;
+            case 'about': showAbout(); break;
+            case 'date': showDate(); break;
+            case 'matrix': 
+                if(window._matrixInterval) {
+                    addOutputLine("Matrix already active! Press any key to stop first.");
+                } else {
+                    matrixRain();
+                }
+                break;
+            default:
+                // AI fallback for unknown
+                addOutputLine(`🤖 Unknown command: '${cmdRaw}'. Try 'help' for available commands.`, true);
+                // Also AI suggests something
+                setTimeout(() => {
+                    addOutputLine(`💡 AI Suggestion: ${Math.random() > 0.5 ? "try 'skills' to explore" : "type 'theme' for visual change"}`, false);
+                }, 100);
+                break;
+        }
+        commandInput.value = '';
+        commandInput.focus();
+        
+        // if matrix stop condition but no interruption needed
+        if(cmd === 'clear' && window._matrixInterval) {
+            if(window._stopMatrix) window._stopMatrix();
+            window._matrixInterval = null;
+        }
+    }
+    
+    // Command Input Event Listeners
+    commandInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            const val = commandInput.value;
+            if(val.trim().length) processCommand(val);
+            else {
+                playBeep('error');
+            }
+        } else if(e.key === 'ArrowUp') {
+            e.preventDefault();
+            if(history.length > 0 && historyIndex > 0) {
+                historyIndex--;
+                commandInput.value = history[historyIndex];
+                commandInput.setSelectionRange(commandInput.value.length, commandInput.value.length);
+            } else if(historyIndex === -1 && history.length) {
+                historyIndex = history.length-1;
+                commandInput.value = history[historyIndex];
+            }
+        } else if(e.key === 'ArrowDown') {
+            e.preventDefault();
+            if(history.length && historyIndex < history.length-1) {
+                historyIndex++;
+                commandInput.value = history[historyIndex];
+            } else if(historyIndex === history.length-1) {
+                historyIndex = history.length;
+                commandInput.value = '';
+            }
+        }
+    });
+    
+    // badge click handlers
+    document.querySelectorAll('.badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            const cmd = badge.getAttribute('data-cmd');
+            if(cmd) processCommand(cmd);
+        });
+    });
+    
+    // AI suggestion button: provides a random helpful command suggestion
+    const aiSuggestionBtn = document.getElementById('aiSuggestionBtn');
+    aiSuggestionBtn.addEventListener('click', () => {
+        const suggestions = ['skills', 'theme', 'contact', 'matrix', 'ai', 'about'];
+        const randCmd = suggestions[Math.floor(Math.random() * suggestions.length)];
+        addOutputLine(`🤖 AI SUGGESTION: Try command "${randCmd}" → `);
+        setTimeout(() => {
+            addOutputLine(`💡 Quick run? type: ${randCmd}`, false);
+        }, 300);
+        playBeep('success');
+    });
+    
+    // Focus management & global key (for matrix stop)
+    document.addEventListener('click', () => commandInput.focus());
+    commandInput.focus();
+    
+    // initial greeting
+    setTimeout(() => {
+        addOutputLine("🔊 Sound effects active. Use MUTE button. Up/down for history.");
+    }, 500);
+</script>
+</body>
+</html>

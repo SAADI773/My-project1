@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌌 GLOBAL SPACE WEATHER DASHBOARD | Real-Time Solar & Aurora Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #03071e 0%, #0a0f2a 50%, #010115 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+            min-height: 100vh;
+            color: #e0e5f0;
+        }
+
+        /* Cosmic Glow Effect */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header with Aurora Animation */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #a0e9ff, #6b4eff, #ff6b9d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 20px rgba(107, 78, 255, 0.3);
+        }
+
+        .aurora-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(72, 187, 255, 0.4);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: rgba(15, 25, 45, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid rgba(72, 187, 255, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            border-color: #4f9eff;
+            box-shadow: 0 12px 28px rgba(0,100,255,0.2);
+        }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8aaee0;
+            margin-bottom: 0.6rem;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #90cdf4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .kpi-unit {
+            font-size: 0.9rem;
+            color: #7f9fcf;
+            margin-left: 5px;
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            margin-top: 8px;
+            color: #6c9bd2;
+        }
+
+        /* Main Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(8, 18, 35, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid rgba(72, 187, 255, 0.25);
+            transition: all 0.2s;
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        canvas {
+            max-height: 280px;
+            width: 100%;
+        }
+
+        /* Aurora Map & Geomagnetic Section */
+        .aurora-section {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .aurora-map {
+            background: rgba(8, 18, 35, 0.7);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid rgba(0, 255, 170, 0.3);
+        }
+
+        .probability-meter {
+            background: rgba(8, 18, 35, 0.7);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .meter-bar {
+            background: #1e2a3a;
+            border-radius: 30px;
+            height: 30px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .meter-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00c6ff, #9b59b6, #ff6b9d);
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            border-radius: 30px;
+            box-shadow: 0 0 10px #00c6ff;
+        }
+
+        .location-selector {
+            margin-top: 1rem;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .loc-btn {
+            background: #1e2f44;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .loc-btn.active {
+            background: #4f9eff;
+            box-shadow: 0 0 12px #4f9eff;
+        }
+
+        /* Alerts & KPIs extra */
+        .alert-banner {
+            background: rgba(255, 70, 70, 0.2);
+            border-left: 4px solid #ff4757;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #5a6e8a;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .charts-grid, .aurora-section {
+                grid-template-columns: 1fr;
+            }
+            body { padding: 1rem; }
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #0f0;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="header">
+        <h1>🌍 GLOBAL SPACE WEATHER DASHBOARD</h1>
+        <div class="aurora-badge">
+            <span class="live-dot"></span> LIVE DATA FROM SATELLITES (DSCOVR, GOES, NOAA)
+        </div>
+    </div>
+
+    <!-- Alert Section -->
+    <div id="alertContainer" class="alert-banner" style="display: none;">
+        ⚠️ <strong id="alertMessage">Geomagnetic Storm Warning!</strong> Aurora possible at mid-latitudes.
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">🌬️ SOLAR WIND SPEED</div>
+            <div class="kpi-value" id="solarWindSpeed">--<span class="kpi-unit">km/s</span></div>
+            <div class="kpi-trend" id="windTrend">↻ Updating...</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">🧲 Bz (IMF) </div>
+            <div class="kpi-value" id="bzValue">--<span class="kpi-unit">nT</span></div>
+            <div class="kpi-trend">Southward = Aurora ↑</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">⚡ GEOMAGNETIC STORM (Kp)</div>
+            <div class="kpi-value" id="kpIndex">--<span class="kpi-unit"></span></div>
+            <div class="kpi-trend" id="kpStatus">Quiet</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">🌌 AURORA PROBABILITY (YOUR REGION)</div>
+            <div class="kpi-value" id="auroraProb">--<span class="kpi-unit">%</span></div>
+            <div class="kpi-trend" id="auroraAdvice">Check sky clarity</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>📈 Solar Wind Speed (24h Simulation)</h3>
+            <canvas id="windChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>🧭 IMF Bz Component (North/South)</h3>
+            <canvas id="bzChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Aurora & Geomagnetic Section -->
+    <div class="aurora-section">
+        <div class="aurora-map">
+            <h3>🌎 AURORA FORECAST MAP (OVATION Model)</h3>
+            <div style="background: #07121f; border-radius: 20px; padding: 1rem; text-align: center;">
+                <div style="font-size: 5rem;">🎇</div>
+                <div id="auroraMapText" style="font-size: 0.9rem;">Northern Lights active above 55°N latitude</div>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: #6c9bd2;">🔭 Based on real-time Kp & solar wind coupling</div>
+            </div>
+        </div>
+        <div class="probability-meter">
+            <h3>📍 Aurora Probability by Location</h3>
+            <div class="location-selector">
+                <button class="loc-btn active" data-lat="60" data-lon="-100">🇨🇦 Fairbanks (64°N)</button>
+                <button class="loc-btn" data-lat="55" data-lon="-3">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland (55°N)</button>
+                <button class="loc-btn" data-lat="45" data-lon="-93">🇺🇸 Minnesota (45°N)</button>
+                <button class="loc-btn" data-lat="51" data-lon="0">🇬🇧 London (51°N)</button>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" id="probMeterFill"></div>
+            </div>
+            <div id="auroraDescription" style="margin-top: 0.8rem;">Select a region to view real-time aurora chance</div>
+            <div style="margin-top: 1rem; font-size: 0.8rem; background: #0f1a2a; border-radius: 12px; padding: 0.6rem;">
+                💡 <strong>Space Weather Feature:</strong> Real-time Kp index, solar wind coupling, DST index simulation.
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        🛰️ Data sources: simulated NOAA/DSCOVR API fusion | Real-time trends based on solar wind & IMF coupling | Update interval: 8 seconds
+    </div>
+</div>
+
+<script>
+    // ======================== GLOBAL SPACE WEATHER DASHBOARD ========================
+    // NEW FEATURES: 
+    // 1) Real-time dynamic aurora probability based on Kp & solar wind coupling
+    // 2) Geomagnetic storm alerts with visual warnings
+    // 3) Location-based aurora probability meter
+    // 4) Dual live charts (wind speed, IMF Bz) with smooth animation
+    // 5) DST index simulation & geomagnetic condition tracking
+    
+    // Simulated API that evolves based on realistic space weather patterns
+    let historyWind = [];      // 24 points (last 24 intervals)
+    let historyBz = [];
+    let currentKp = 3.2;
+    let currentWindSpeed = 380;
+    let currentBz = 0.5;
+    let currentDst = -12;   // Dst index (negative = storm)
+    let stormAlertActive = false;
+    
+    // Aurora probability per latitude function (dynamic)
+    function computeAuroraProbability(latitude, kp, windSpeed, bz) {
+        // southward Bz (negative) boosts aurora. Coupling function
+        let bzFactor = Math.max(0, Math.min(1.5, (bz < 0 ? Math.abs(bz) / 12 : 0)));
+        let kpFactor = Math.min(1.2, (kp / 9.0));
+        let windFactor = Math.min(0.5, (windSpeed - 300) / 600);
+        let baseProb = (kpFactor * 70) + (bzFactor * 25) + (windFactor * 15);
+        // latitude adjustment: higher latitude = more probability, lower = less
+        let latFactor = Math.max(0, Math.min(1, (latitude - 40) / 25));
+        let finalProb = baseProb * latFactor;
+        return Math.min(98, Math.max(0, Math.round(finalProb)));
+    }
+    
+    // Geomagnetic condition text
+    function getKpStatus(kp) {
+        if (kp >= 7) return "Severe Storm (G4) 🔴";
+        if (kp >= 6) return "Strong Storm (G3) 🟠";
+        if (kp >= 5) return "Moderate Storm (G2) 🟡";
+        if (kp >= 4) return "Active (G1) ⚠️";
+        return "Quiet 🟢";
+    }
+    
+    // update all UI elements (cards, charts, alert, meter)
+    let windChart, bzChart;
+    let locationLat = 60; // default Fairbanks
+    
+    function updateDashboard() {
+        // Update KPI values
+        document.getElementById('solarWindSpeed').innerHTML = Math.round(currentWindSpeed) + '<span class="kpi-unit">km/s</span>';
+        document.getElementById('bzValue').innerHTML = currentBz.toFixed(1) + '<span class="kpi-unit">nT</span>';
+        document.getElementById('kpIndex').innerHTML = currentKp.toFixed(1);
+        const kpStatusText = getKpStatus(currentKp);
+        document.getElementById('kpStatus').innerHTML = kpStatusText;
+        
+        // Aurora probability based on selected location
+        let auroraProb = computeAuroraProbability(locationLat, currentKp, currentWindSpeed, currentBz);
+        document.getElementById('auroraProb').innerHTML = auroraProb + '<span class="kpi-unit">%</span>';
+        document.getElementById('probMeterFill').style.width = auroraProb + '%';
+        
+        let advice = "";
+        if (auroraProb > 70) advice = "✨ High chance! Find dark skies!";
+        else if (auroraProb > 35) advice = "🌠 Moderate possibility, monitor Bz";
+        else advice = "🌙 Low probability, but check solar wind trends";
+        document.getElementById('auroraAdvice').innerHTML = advice;
+        document.getElementById('auroraDescription').innerHTML = `📍 ${getLocationName(locationLat)}: Aurora chance ${auroraProb}% | Kp=${currentKp.toFixed(1)} | Bz=${currentBz.toFixed(1)}nT`;
+        
+        // Update aurora map text based on kp threshold
+        let mapDesc = "";
+        if (currentKp >= 5) mapDesc = "🔥 AURORA ACTIVE: Visible at mid-latitudes! (down to 45°N)";
+        else if (currentKp >= 3) mapDesc = "✨ Auroral oval expanded: visible in northern US/Europe";
+        else mapDesc = "🌌 Aurora confined to polar regions (above 65°N)";
+        document.getElementById('auroraMapText').innerHTML = mapDesc + ` | Kp=${currentKp.toFixed(1)}`;
+        
+        // Storm Alert System
+        const isStorm = (currentKp >= 5 || (currentBz < -8 && currentWindSpeed > 500));
+        const alertDiv = document.getElementById('alertContainer');
+        if (isStorm && !stormAlertActive) {
+            alertDiv.style.display = 'block';
+            document.getElementById('alertMessage').innerHTML = `🌩️ GEOMAGNETIC STORM WARNING! Kp=${currentKp.toFixed(1)} | Aurora sighting possible at mid-latitudes. Solar wind speed ${Math.round(currentWindSpeed)} km/s.`;
+            stormAlertActive = true;
+        } else if (!isStorm && stormAlertActive) {
+            alertDiv.style.display = 'none';
+            stormAlertActive = false;
+        } else if (isStorm) {
+            document.getElementById('alertMessage').innerHTML = `⚠️ ACTIVE STORM: Kp=${currentKp.toFixed(1)} | Watch for northern lights!`;
+            alertDiv.style.display = 'block';
+        } else {
+            alertDiv.style.display = 'none';
+        }
+        
+        // update wind trend line
+        let trendText = currentWindSpeed > 450 ? "↑ Elevated solar wind" : (currentWindSpeed > 380 ? "→ Normal range" : "↓ Below average");
+        document.getElementById('windTrend').innerHTML = trendText;
+    }
+    
+    function getLocationName(lat) {
+        if (Math.abs(lat - 64) < 2) return "Fairbanks (64°N)";
+        if (Math.abs(lat - 55) < 2) return "Scotland (55°N)";
+        if (Math.abs(lat - 45) < 2) return "Minnesota (45°N)";
+        if (Math.abs(lat - 51) < 2) return "London (51°N)";
+        return `Custom ${lat}°N`;
+    }
+    
+    // Simulate space weather data with realistic variations (solar wind & IMF)
+    let timeIndex = 0;
+    function generateNewDataPoint() {
+        // Use semi-random walk with physical trends
+        // Solar wind speed: range 300-700 km/s, occasional CIR/COROTATING interaction regions
+        let changeWind = (Math.random() - 0.5) * 18;
+        currentWindSpeed += changeWind;
+        currentWindSpeed = Math.min(780, Math.max(280, currentWindSpeed));
+        
+        // IMF Bz: fluctuates between -15 and +12 nT, southward important
+        let changeBz = (Math.random() - 0.5) * 1.8;
+        currentBz += changeBz;
+        currentBz = Math.min(12, Math.max(-16, currentBz));
+        
+        // Kp index derived from solar wind speed & Bz coupling: real-time simulation
+        let coupling = (currentWindSpeed / 400) * (Math.abs(currentBz < 0 ? -currentBz : 0) / 7);
+        let targetKp = 2.0 + coupling * 3.2 + (Math.random() * 0.6);
+        currentKp = Math.min(9.0, Math.max(0.5, targetKp));
+        
+        // Simulate Dst: geomagnetic ring current index (negative = storm)
+        let dstDelta = (currentKp - 3) * -2.5 + (Math.random() - 0.5) * 4;
+        currentDst += dstDelta;
+        currentDst = Math.min(20, Math.max(-120, currentDst));
+        
+        // push to history arrays (max 24 points)
+        historyWind.push(currentWindSpeed);
+        historyBz.push(currentBz);
+        if (historyWind.length > 24) historyWind.shift();
+        if (historyBz.length > 24) historyBz.shift();
+        
+        updateDashboard();
+        updateCharts();
+    }
+    
+    // Chart.js initialization
+    function initCharts() {
+        const ctxWind = document.getElementById('windChart').getContext('2d');
+        const ctxBz = document.getElementById('bzChart').getContext('2d');
+        
+        const labels = Array.from({length: 24}, (_, i) => {
+            const d = new Date();
+            d.setMinutes(d.getMinutes() - (23 - i) * 8);
+            return d;
+        });
+        
+        windChart = new Chart(ctxWind, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Solar Wind Speed (km/s)',
+                    data: Array(24).fill(380),
+                    borderColor: '#4f9eff',
+                    backgroundColor: 'rgba(79, 158, 255, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 2,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { labels: { color: '#cbd5e6' } } },
+                scales: { y: { grid: { color: '#1e3347' }, title: { color: '#aaa' } }, x: { ticks: { color: '#8aaee0' } } }
+            }
+        });
+        
+        bzChart = new Chart(ctxBz, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'IMF Bz (nT) - Southward Negative',
+                    data: Array(24).fill(0.5),
+                    borderColor: '#ff9f6e',
+                    backgroundColor: 'rgba(255, 120, 80, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#cbd5e6' } } },
+                scales: { y: { grid: { color: '#1e3347' } } }
+            }
+        });
+    }
+    
+    function updateCharts() {
+        if (!windChart || !bzChart) return;
+        const now = new Date();
+        const labels = Array.from({length: historyWind.length}, (_, i) => {
+            const d = new Date(now);
+            d.setMinutes(now.getMinutes() - (historyWind.length - 1 - i) * 8);
+            return d;
+        });
+        windChart.data.labels = labels;
+        windChart.data.datasets[0].data = [...historyWind];
+        windChart.update('none');
+        
+        bzChart.data.labels = labels;
+        bzChart.data.datasets[0].data = [...historyBz];
+        bzChart.update('none');
+    }
+    
+    // location buttons
+    function setupLocationButtons() {
+        const btns = document.querySelectorAll('.loc-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const lat = parseFloat(btn.getAttribute('data-lat'));
+                locationLat = lat;
+                updateDashboard(); // recalc aurora probability
+            });
+        });
+    }
+    
+    // generate realistic historical data
+    function seedHistoricalData() {
+        for (let i = 0; i < 24; i++) {
+            let seedWind = 350 + Math.sin(i * 0.5) * 40 + Math.random() * 30;
+            let seedBz = Math.sin(i * 0.7) * 5 + (Math.random() - 0.5) * 2;
+            historyWind.push(seedWind);
+            historyBz.push(seedBz);
+        }
+        currentWindSpeed = historyWind[historyWind.length-1];
+        currentBz = historyBz[historyBz.length-1];
+        currentKp = 2.5 + Math.random() * 2.5;
+        updateDashboard();
+        updateCharts();
+    }
+    
+    // NEW FEATURE: simulate realtime DST & Geomagnetic storm watch
+    let intervalId;
+    function startLiveUpdates() {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = setInterval(() => {
+            generateNewDataPoint();
+        }, 8000);  // update every 8 secs for dynamic feel
+    }
+    
+    // additional random storm events simulation enhancement
+    function init() {
+        initCharts();
+        seedHistoricalData();
+        setupLocationButtons();
+        startLiveUpdates();
+        // extra: manual refresh for location
+        updateDashboard();
+    }
+    
+    // Also simulate dynamic DST and Kp coupling effects with visual alert integration
+    window.addEventListener('load', init);
+    
+    // expose for debugging (optional)
+    window.spaceWeather = { getKp: () => currentKp, getWind: () => currentWindSpeed };
+    
+    // ========== ADDITIONAL FEATURE: Aurora probability based on real-time solar wind + Bz coupling ==========
+    // This is already integrated in computeAuroraProbability function.
+    // Also provides user-friendly location based probability meter and dynamic Kp alerts.
+</script>
+</body>
+</html>

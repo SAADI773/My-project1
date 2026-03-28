@@ -1,0 +1,801 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LIVING STYLE GUIDE // Interactive Component Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* Main Layout */
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .badge-new {
+            background: #10b981;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            margin-left: 0.8rem;
+            vertical-align: middle;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Two-column layout */
+        .style-guide-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        /* Components Showcase Area */
+        .components-area {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 2rem;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+
+        .component-section {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            padding-bottom: 2rem;
+        }
+
+        .component-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .section-title .icon {
+            font-size: 1.8rem;
+        }
+
+        .component-demo {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* Reusable Component Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--btn-bg, #3b82f6);
+            color: var(--btn-color, white);
+            border-radius: var(--btn-radius, 8px);
+            box-shadow: var(--btn-shadow, 0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Card Component */
+        .card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: var(--card-radius, 16px);
+            padding: 1.5rem;
+            width: 280px;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow, 0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .card h3 {
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .card-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal {
+            background: #1e293b;
+            border-radius: var(--modal-radius, 20px);
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            border: 1px solid rgba(59,130,246,0.3);
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--modal-shadow, 0 20px 40px rgba(0,0,0,0.3));
+        }
+
+        .modal h2 {
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 32px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #475569;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--toggle-active, #3b82f6);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(28px);
+        }
+
+        /* Control Panel (Right Side) */
+        .control-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 1.8rem;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+
+        .control-panel h3 {
+            color: #f1f5f9;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            color: #cbd5e1;
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            background: #334155;
+            height: 4px;
+            border-radius: 5px;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]:focus {
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+        }
+
+        .color-preview {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.1s;
+        }
+
+        .color-option.active {
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .value-display {
+            background: #0f172a;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #60a5fa;
+        }
+
+        /* Code Snippet */
+        .code-snippet {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #a78bfa;
+            overflow-x: auto;
+            border-left: 3px solid #3b82f6;
+        }
+
+        hr {
+            border-color: #334155;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 1000px) {
+            .style-guide-grid {
+                grid-template-columns: 1fr;
+            }
+            .control-panel {
+                position: static;
+            }
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>🎨 Interactive Component Library <span class="badge-new">LIVE PROPS</span></h1>
+        <p>Real-time customization • Every component reacts instantly • Reusable design system</p>
+    </div>
+
+    <div class="style-guide-grid">
+        <!-- LEFT: Components Showcase -->
+        <div class="components-area">
+            <!-- BUTTONS SECTION -->
+            <div class="component-section">
+                <div class="section-title">
+                    <span class="icon">🔘</span>
+                    <span>Buttons</span>
+                </div>
+                <div class="component-demo">
+                    <button class="btn" id="demoButton">Primary Action</button>
+                    <button class="btn" id="demoButtonSecondary" style="--btn-bg: #64748b;">Secondary</button>
+                    <button class="btn" id="demoButtonOutline" style="--btn-bg: transparent; --btn-color: #60a5fa; border: 2px solid #60a5fa; background: transparent;">Outline</button>
+                </div>
+                <div class="code-snippet" id="buttonCode">
+                    &lt;button class="btn"&gt;Primary Action&lt;/button&gt;
+                </div>
+            </div>
+
+            <!-- CARDS SECTION -->
+            <div class="component-section">
+                <div class="section-title">
+                    <span class="icon">🃏</span>
+                    <span>Cards</span>
+                </div>
+                <div class="component-demo">
+                    <div class="card" id="demoCard">
+                        <h3>Interactive Card</h3>
+                        <p>This card's border-radius, shadow, and style update in real-time based on your controls.</p>
+                        <div class="card-actions">
+                            <button class="btn" style="--btn-bg: #3b82f6; padding: 0.4rem 1rem; font-size: 0.85rem;">Learn More</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-snippet" id="cardCode">
+                    &lt;div class="card"&gt;...&lt;/div&gt;
+                </div>
+            </div>
+
+            <!-- MODAL SECTION (with trigger button) -->
+            <div class="component-section">
+                <div class="section-title">
+                    <span class="icon">📦</span>
+                    <span>Modal Dialog</span>
+                </div>
+                <div class="component-demo">
+                    <button class="btn" id="openModalBtn" style="--btn-bg: #8b5cf6;">Launch Modal</button>
+                </div>
+                <div class="code-snippet" id="modalCode">
+                    &lt;Modal /&gt; with dynamic border-radius & shadow
+                </div>
+            </div>
+
+            <!-- TOGGLE SWITCH SECTION -->
+            <div class="component-section">
+                <div class="section-title">
+                    <span class="icon">⚡</span>
+                    <span>Toggle Switch</span>
+                </div>
+                <div class="component-demo">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="liveToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="color: #94a3b8; margin-left: 1rem;" id="toggleStatus">Status: OFF</span>
+                </div>
+                <div class="code-snippet">
+                    &lt;ToggleSwitch activeColor="#3b82f6" /&gt; • Real-time prop: active color changes with control panel
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Interactive Control Panel (Props Editor) -->
+        <div class="control-panel">
+            <h3>🎮 LIVE PROP EDITOR</h3>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem;">Adjust any property → Components update instantly</p>
+            
+            <!-- Border Radius Control -->
+            <div class="control-group">
+                <div class="control-label">
+                    <span>📐 Border Radius</span>
+                    <span class="value-display" id="radiusValue">8px</span>
+                </div>
+                <input type="range" id="radiusSlider" min="0" max="40" step="1" value="8">
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button id="radiusPresetSharp" class="preset-btn" style="background:#334155; border:none; padding:4px 12px; border-radius:6px; color:white; cursor:pointer;">Sharp (0px)</button>
+                    <button id="radiusPresetRound" class="preset-btn" style="background:#334155; border:none; padding:4px 12px; border-radius:6px; color:white; cursor:pointer;">Round (20px)</button>
+                    <button id="radiusPresetPill" class="preset-btn" style="background:#334155; border:none; padding:4px 12px; border-radius:6px; color:white; cursor:pointer;">Pill (40px)</button>
+                </div>
+            </div>
+
+            <!-- Shadow Intensity Control -->
+            <div class="control-group">
+                <div class="control-label">
+                    <span>🌑 Shadow Intensity</span>
+                    <span class="value-display" id="shadowValue">Medium</span>
+                </div>
+                <input type="range" id="shadowSlider" min="0" max="20" step="1" value="8">
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button id="shadowNone" class="preset-btn" style="background:#334155; border:none; padding:4px 12px; border-radius:6px;">None</button>
+                    <button id="shadowDeep" class="preset-btn" style="background:#334155; border:none; padding:4px 12px; border-radius:6px;">Deep</button>
+                </div>
+            </div>
+
+            <!-- Toggle Active Color -->
+            <div class="control-group">
+                <div class="control-label">
+                    <span>🎨 Toggle Active Color</span>
+                    <span class="value-display" id="toggleColorValue">#3b82f6</span>
+                </div>
+                <div class="color-preview">
+                    <div class="color-option" style="background: #3b82f6;" data-color="#3b82f6"></div>
+                    <div class="color-option" style="background: #10b981;" data-color="#10b981"></div>
+                    <div class="color-option" style="background: #f59e0b;" data-color="#f59e0b"></div>
+                    <div class="color-option" style="background: #ef4444;" data-color="#ef4444"></div>
+                    <div class="color-option" style="background: #8b5cf6;" data-color="#8b5cf6"></div>
+                </div>
+            </div>
+
+            <!-- Button Color Control (Primary) -->
+            <div class="control-group">
+                <div class="control-label">
+                    <span>🔵 Primary Button Color</span>
+                    <span class="value-display" id="btnColorValue">#3b82f6</span>
+                </div>
+                <div class="color-preview">
+                    <div class="color-option" style="background: #3b82f6;" data-btncolor="#3b82f6"></div>
+                    <div class="color-option" style="background: #ec489a;" data-btncolor="#ec489a"></div>
+                    <div class="color-option" style="background: #06b6d4;" data-btncolor="#06b6d4"></div>
+                    <div class="color-option" style="background: #f97316;" data-btncolor="#f97316"></div>
+                </div>
+            </div>
+
+            <hr>
+            <div style="font-size: 0.75rem; color: #64748b; text-align: center;">
+                ⚡ Real-time reactivity • All components share design tokens
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL STRUCTURE (hidden initially) -->
+<div id="modalRoot" style="display: none;"></div>
+
+<script>
+    // ---- DOM Elements ----
+    const radiusSlider = document.getElementById('radiusSlider');
+    const radiusValue = document.getElementById('radiusValue');
+    const shadowSlider = document.getElementById('shadowSlider');
+    const shadowValue = document.getElementById('shadowValue');
+    
+    // Components
+    const demoButton = document.getElementById('demoButton');
+    const demoCard = document.getElementById('demoCard');
+    const liveToggleInput = document.getElementById('liveToggle');
+    const toggleStatusSpan = document.getElementById('toggleStatus');
+    const openModalBtn = document.getElementById('openModalBtn');
+    
+    // ---- Helper: Update All Components based on current props ----
+    let currentRadius = 8;
+    let currentShadowIntensity = 8;
+    let currentToggleColor = '#3b82f6';
+    let currentBtnColor = '#3b82f6';
+    
+    function updateAllStyles() {
+        // 1. Update Border Radius for Buttons, Card, Modal (if active), and toggle slider? main components
+        const radiusPx = `${currentRadius}px`;
+        demoButton.style.setProperty('--btn-radius', radiusPx);
+        const secondaryBtn = document.getElementById('demoButtonSecondary');
+        const outlineBtn = document.getElementById('demoButtonOutline');
+        if(secondaryBtn) secondaryBtn.style.setProperty('--btn-radius', radiusPx);
+        if(outlineBtn) outlineBtn.style.setProperty('--btn-radius', radiusPx);
+        
+        demoCard.style.setProperty('--card-radius', radiusPx);
+        
+        // update any active modal's border radius dynamically if modal exists
+        const activeModal = document.querySelector('.modal');
+        if(activeModal) {
+            activeModal.style.setProperty('--modal-radius', radiusPx);
+        }
+        
+        // 2. Update Shadow: create dynamic shadow based on intensity
+        const shadowVal = currentShadowIntensity;
+        let shadowStyle = '';
+        if(shadowVal === 0) {
+            shadowStyle = 'none';
+        } else {
+            const intensity = shadowVal / 10;
+            shadowStyle = `0 ${shadowVal}px ${shadowVal * 1.5}px rgba(0,0,0,${Math.min(0.4, intensity * 0.3 + 0.1)})`;
+        }
+        demoButton.style.setProperty('--btn-shadow', shadowStyle);
+        if(secondaryBtn) secondaryBtn.style.setProperty('--btn-shadow', shadowStyle);
+        if(outlineBtn) outlineBtn.style.setProperty('--btn-shadow', shadowStyle);
+        demoCard.style.setProperty('--card-shadow', shadowStyle);
+        
+        const activeModalForShadow = document.querySelector('.modal');
+        if(activeModalForShadow) {
+            activeModalForShadow.style.setProperty('--modal-shadow', shadowStyle);
+        }
+        
+        // 3. Update Toggle Color
+        const toggleSliderElements = document.querySelectorAll('.toggle-slider');
+        toggleSliderElements.forEach(slider => {
+            slider.style.setProperty('--toggle-active', currentToggleColor);
+        });
+        // update inline style for toggle component's active background
+        const styleTag = document.getElementById('toggleColorDynamic');
+        if(styleTag) styleTag.remove();
+        const newStyle = document.createElement('style');
+        newStyle.id = 'toggleColorDynamic';
+        newStyle.textContent = `.toggle-switch input:checked + .toggle-slider { background-color: ${currentToggleColor} !important; }`;
+        document.head.appendChild(newStyle);
+        
+        // 4. Update Button Primary Color
+        demoButton.style.setProperty('--btn-bg', currentBtnColor);
+        
+        // update code snippets text dynamically to show current props
+        document.getElementById('buttonCode').innerHTML = `&lt;button class="btn" style="border-radius: ${currentRadius}px; background: ${currentBtnColor}; box-shadow: ${shadowStyle}"&gt;Primary Action&lt;/button&gt;`;
+        document.getElementById('cardCode').innerHTML = `&lt;div class="card" style="border-radius: ${currentRadius}px; box-shadow: ${shadowStyle};"&gt;...&lt;/div&gt;`;
+        document.getElementById('modalCode').innerHTML = `&lt;Modal borderRadius="${currentRadius}px" shadow="${shadowStyle}" /&gt; • Real-time props`;
+        
+        // update radius display
+        radiusValue.innerText = `${currentRadius}px`;
+        let shadowText = currentShadowIntensity === 0 ? 'None' : currentShadowIntensity > 12 ? 'Heavy' : currentShadowIntensity > 5 ? 'Medium' : 'Light';
+        shadowValue.innerText = shadowText;
+    }
+    
+    // ---- Event Listeners for Sliders ----
+    radiusSlider.addEventListener('input', (e) => {
+        currentRadius = parseInt(e.target.value);
+        updateAllStyles();
+    });
+    
+    shadowSlider.addEventListener('input', (e) => {
+        currentShadowIntensity = parseInt(e.target.value);
+        updateAllStyles();
+    });
+    
+    // Preset radius buttons
+    document.getElementById('radiusPresetSharp').addEventListener('click', () => {
+        radiusSlider.value = 0;
+        currentRadius = 0;
+        updateAllStyles();
+    });
+    document.getElementById('radiusPresetRound').addEventListener('click', () => {
+        radiusSlider.value = 20;
+        currentRadius = 20;
+        updateAllStyles();
+    });
+    document.getElementById('radiusPresetPill').addEventListener('click', () => {
+        radiusSlider.value = 40;
+        currentRadius = 40;
+        updateAllStyles();
+    });
+    
+    document.getElementById('shadowNone').addEventListener('click', () => {
+        shadowSlider.value = 0;
+        currentShadowIntensity = 0;
+        updateAllStyles();
+    });
+    document.getElementById('shadowDeep').addEventListener('click', () => {
+        shadowSlider.value = 20;
+        currentShadowIntensity = 20;
+        updateAllStyles();
+    });
+    
+    // Color pickers for Toggle
+    document.querySelectorAll('.color-option[data-color]').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const color = opt.getAttribute('data-color');
+            if(color) {
+                currentToggleColor = color;
+                document.getElementById('toggleColorValue').innerText = color;
+                updateAllStyles();
+                // visual active state
+                document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+                opt.classList.add('active');
+            }
+        });
+    });
+    
+    // Button Color control
+    document.querySelectorAll('.color-option[data-btncolor]').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const color = opt.getAttribute('data-btncolor');
+            if(color) {
+                currentBtnColor = color;
+                document.getElementById('btnColorValue').innerText = color;
+                updateAllStyles();
+                document.querySelectorAll('.color-option[data-btncolor]').forEach(c => c.classList.remove('active'));
+                opt.classList.add('active');
+            }
+        });
+    });
+    
+    // ---- Toggle Switch interactive status ----
+    liveToggleInput.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        toggleStatusSpan.innerText = `Status: ${isChecked ? 'ON ✅' : 'OFF ⚪'}`;
+        // also play micro interaction: change card badge? just fun
+        if(isChecked) {
+            toggleStatusSpan.style.color = '#10b981';
+        } else {
+            toggleStatusSpan.style.color = '#94a3b8';
+        }
+    });
+    
+    // ---- Modal Component with dynamic props integration ----
+    function createModal() {
+        // remove existing modal
+        const existingOverlay = document.querySelector('.modal-overlay');
+        if(existingOverlay) existingOverlay.remove();
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'modal';
+        // apply current radius and shadow dynamically
+        modalDiv.style.setProperty('--modal-radius', `${currentRadius}px`);
+        modalDiv.style.setProperty('--modal-shadow', currentShadowIntensity === 0 ? 'none' : `0 ${currentShadowIntensity}px ${currentShadowIntensity * 1.5}px rgba(0,0,0,0.3)`);
+        modalDiv.style.borderRadius = `${currentRadius}px`;
+        if(currentShadowIntensity !== 0) {
+            modalDiv.style.boxShadow = `0 ${currentShadowIntensity}px ${currentShadowIntensity * 1.5}px rgba(0,0,0,0.3)`;
+        } else {
+            modalDiv.style.boxShadow = 'none';
+        }
+        
+        modalDiv.innerHTML = `
+            <h2>✨ Interactive Modal</h2>
+            <p>This modal inherits all live props! Border-radius: ${currentRadius}px, Shadow intensity: ${currentShadowIntensity}. Edit sliders → modal updates in real-time (next time you open). For instant update, close and reopen to see changes.</p>
+            <div class="modal-actions">
+                <button class="btn" id="closeModalBtn" style="--btn-bg: #475569;">Close</button>
+                <button class="btn" id="confirmModalBtn" style="--btn-bg: ${currentBtnColor};">Confirm</button>
+            </div>
+        `;
+        overlay.appendChild(modalDiv);
+        document.body.appendChild(overlay);
+        
+        // close handlers
+        const closeBtn = document.getElementById('closeModalBtn');
+        const confirmBtn = document.getElementById('confirmModalBtn');
+        const closeModal = () => overlay.remove();
+        if(closeBtn) closeBtn.addEventListener('click', closeModal);
+        if(confirmBtn) confirmBtn.addEventListener('click', () => {
+            alert('✅ Action confirmed! (Props: radius ' + currentRadius + 'px)');
+            overlay.remove();
+        });
+        overlay.addEventListener('click', (e) => {
+            if(e.target === overlay) overlay.remove();
+        });
+    }
+    
+    // open modal with latest props
+    openModalBtn.addEventListener('click', () => {
+        createModal();
+    });
+    
+    // make sure that when shadow/radius updates, any open modal updates in real-time? 
+    // Advanced: we can add mutation but simpler: notify that new modals get latest. For already open modal we can update style dynamically.
+    // Bonus: real-time update for open modal (enhancement)
+    function updateOpenModalDynamically() {
+        const openModalDiv = document.querySelector('.modal');
+        if(openModalDiv) {
+            openModalDiv.style.borderRadius = `${currentRadius}px`;
+            if(currentShadowIntensity === 0) {
+                openModalDiv.style.boxShadow = 'none';
+            } else {
+                openModalDiv.style.boxShadow = `0 ${currentShadowIntensity}px ${currentShadowIntensity * 1.5}px rgba(0,0,0,0.3)`;
+            }
+            const confirmModalBtnDynamic = document.getElementById('confirmModalBtn');
+            if(confirmModalBtnDynamic) confirmModalBtnDynamic.style.setProperty('--btn-bg', currentBtnColor);
+        }
+    }
+    
+    // enhance updateAllStyles to also update open modal live
+    const originalUpdate = updateAllStyles;
+    window.updateAllStyles = function() {
+        originalUpdate();
+        updateOpenModalDynamically();
+    };
+    updateAllStyles = window.updateAllStyles;
+    
+    // override to keep binding
+    radiusSlider.addEventListener('input', (e) => {
+        currentRadius = parseInt(e.target.value);
+        updateAllStyles();
+    });
+    shadowSlider.addEventListener('input', (e) => {
+        currentShadowIntensity = parseInt(e.target.value);
+        updateAllStyles();
+    });
+    
+    // initial call
+    updateAllStyles();
+    
+    // set default active states for colors
+    document.querySelector('.color-option[data-color="#3b82f6"]').classList.add('active');
+    document.querySelector('.color-option[data-btncolor="#3b82f6"]').classList.add('active');
+    
+    // additional card effect: toggle status can add a badge? just for fun: bind toggle to card demo
+    liveToggleInput.addEventListener('change', (e) => {
+        const cardDemoDiv = document.getElementById('demoCard');
+        if(e.target.checked) {
+            cardDemoDiv.style.border = '1px solid #10b981';
+            cardDemoDiv.style.boxShadow = '0 0 15px rgba(16,185,129,0.2)';
+        } else {
+            cardDemoDiv.style.border = '1px solid rgba(71, 85, 105, 0.5)';
+            cardDemoDiv.style.boxShadow = currentShadowIntensity === 0 ? 'none' : `0 ${currentShadowIntensity}px ${currentShadowIntensity * 1.5}px rgba(0,0,0,0.3)`;
+        }
+    });
+    
+    // small animation: log that style guide is ready
+    console.log('🎨 Interactive Component Library — Real-time prop editing active');
+</script>
+</body>
+</html>
