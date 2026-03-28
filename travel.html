@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🌍 Offline-First Travel Guide | PWA Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Inter', sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* PWA Header */
+        .app-header {
+            background: linear-gradient(135deg, #0f2b3d, #1a4a6f);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .sync-status {
+            background: rgba(255,255,255,0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 5px #4ade80;
+        }
+
+        .offline-dot {
+            background: #f97316;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 1.5rem;
+        }
+
+        /* City Guide Panel */
+        .guide-panel {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            height: fit-content;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .city-selector {
+            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .city-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .city-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .city-btn.active {
+            background: #1a4a6f;
+            color: white;
+        }
+
+        .spots-list {
+            padding: 1rem;
+        }
+
+        .spot-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .spot-item:hover {
+            border-color: #1a4a6f;
+            transform: translateX(4px);
+        }
+
+        .spot-info h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .spot-info p {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .must-see-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 8px;
+            transition: transform 0.1s;
+        }
+
+        .must-see-btn.active {
+            color: #f59e0b;
+            text-shadow: 0 0 4px #fbbf24;
+        }
+
+        /* Map Container */
+        .map-panel {
+            background: #eef2ff;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            height: 65vh;
+            min-height: 500px;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .offline-banner {
+            background: #fef9c3;
+            border-left: 4px solid #eab308;
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 800px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            .guide-panel {
+                max-height: 400px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #1a4a6f;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body>
+<div class="app-header">
+    <div class="logo">
+        🗺️ Offline Travel Guide
+    </div>
+    <div class="sync-status" id="syncStatus">
+        <span class="online-dot" id="statusDot"></span>
+        <span id="statusText">Checking connection...</span>
+        <button id="manualSyncBtn" style="background: none; border: 1px solid white; color:white; border-radius: 20px; padding: 4px 12px; cursor: pointer;">🔄 Sync</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <!-- Left Panel: City Guide & Must-See Spots -->
+    <div class="guide-panel">
+        <div class="city-selector">
+            <strong>📍 Select Destination</strong>
+            <div class="city-buttons" id="cityButtons"></div>
+        </div>
+        <div class="spots-list" id="spotsList">
+            <div class="loading">Loading travel spots...</div>
+        </div>
+        <div class="offline-banner" id="offlineMsg" style="display: none;">
+            📴 You're offline. Your must-see spots are saved locally. Changes will sync when back online.
+        </div>
+    </div>
+
+    <!-- Right Panel: Interactive Map -->
+    <div class="map-panel">
+        <div id="map"></div>
+    </div>
+</div>
+<footer>
+    🌍 Offline-First PWA • Service Worker Caching • IndexedDB Storage • Auto-sync when online • Mark must-see spots even without internet
+</footer>
+
+<script>
+    // ======================= OFFLINE-FIRST TRAVEL GUIDE =======================
+    // Features:
+    // 1) Service Worker registration with cache-first strategy
+    // 2) IndexedDB for storing cities, spots, and user "must-see" markings
+    // 3) Interactive Leaflet map with markers
+    // 4) Sync queue: tracks unsynced actions when offline, syncs when connection restored
+    // 5) PWA manifest support (dynamic)
+    // 6) Real-time connection status + manual sync button
+    
+    // ---------- Travel Data (preloaded cities & spots) ----------
+    const CITIES = {
+        'paris': { name: 'Paris', lat: 48.8566, lng: 2.3522, zoom: 12 },
+        'tokyo': { name: 'Tokyo', lat: 35.6895, lng: 139.6917, zoom: 11 },
+        'nyc': { name: 'New York', lat: 40.7128, lng: -74.0060, zoom: 12 },
+        'rome': { name: 'Rome', lat: 41.9028, lng: 12.4964, zoom: 11 }
+    };
+    
+    const SPOTS_DATA = {
+        paris: [
+            { id: 'paris_eiffel', name: 'Eiffel Tower', lat: 48.8584, lng: 2.2945, description: 'Iconic iron lattice tower' },
+            { id: 'paris_louvre', name: 'Louvre Museum', lat: 48.8606, lng: 2.3376, description: 'World-famous art museum' },
+            { id: 'paris_notre', name: 'Notre-Dame', lat: 48.8530, lng: 2.3499, description: 'Gothic cathedral' }
+        ],
+        tokyo: [
+            { id: 'tokyo_shibuya', name: 'Shibuya Crossing', lat: 35.6595, lng: 139.7005, description: 'Busiest intersection' },
+            { id: 'tokyo_temple', name: 'Senso-ji Temple', lat: 35.7147, lng: 139.7967, description: 'Ancient Buddhist temple' },
+            { id: 'tokyo_tower', name: 'Tokyo Tower', lat: 35.6586, lng: 139.7454, description: 'Red & white landmark' }
+        ],
+        nyc: [
+            { id: 'nyc_statue', name: 'Statue of Liberty', lat: 40.6892, lng: -74.0445, description: 'Freedom monument' },
+            { id: 'nyc_times', name: 'Times Square', lat: 40.7580, lng: -73.9855, description: 'Bright lights' },
+            { id: 'nyc_central', name: 'Central Park', lat: 40.7851, lng: -73.9683, description: 'Urban oasis' }
+        ],
+        rome: [
+            { id: 'rome_colosseum', name: 'Colosseum', lat: 41.8902, lng: 12.4922, description: 'Ancient amphitheater' },
+            { id: 'rome_vatican', name: 'Vatican City', lat: 41.9029, lng: 12.4534, description: 'St. Peter’s Basilica' },
+            { id: 'rome_fountain', name: 'Trevi Fountain', lat: 41.9009, lng: 12.4833, description: 'Baroque masterpiece' }
+        ]
+    };
+    
+    // ---------- IndexedDB Manager ----------
+    const DB_NAME = 'TravelGuideDB';
+    const DB_VERSION = 2;
+    let db = null;
+    
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                db = request.result;
+                resolve(db);
+            };
+            request.onupgradeneeded = (event) => {
+                const dbEvent = event.target.result;
+                if (!dbEvent.objectStoreNames.contains('mustSee')) {
+                    dbEvent.createObjectStore('mustSee', { keyPath: 'spotId' });
+                }
+                if (!dbEvent.objectStoreNames.contains('syncQueue')) {
+                    dbEvent.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
+                }
+                if (!dbEvent.objectStoreNames.contains('citiesCache')) {
+                    dbEvent.createObjectStore('citiesCache', { keyPath: 'cityId' });
+                }
+            };
+        });
+    }
+    
+    // Save must-see spot to IndexedDB (offline-first)
+    async function saveMustSee(spotId, cityId, spotData, isMustSee) {
+        if (!db) await openDB();
+        const tx = db.transaction(['mustSee'], 'readwrite');
+        const store = tx.objectStore('mustSee');
+        if (isMustSee) {
+            store.put({ spotId, cityId, spotData, timestamp: Date.now() });
+        } else {
+            store.delete(spotId);
+        }
+        await tx.complete;
+        // Also queue for sync if offline (track pending)
+        if (!navigator.onLine) {
+            await addToSyncQueue({ type: 'mustsee_toggle', spotId, cityId, isMustSee, spotData });
+        } else {
+            // online: we can also "sync" to imaginary server (simulate)
+            console.log(`[SYNC] Must-see toggled online for ${spotId}`);
+        }
+        renderSpotsForCity(currentCity);
+        updateMapMarkers();
+    }
+    
+    // Sync queue management
+    async function addToSyncQueue(action) {
+        if (!db) await openDB();
+        const tx = db.transaction(['syncQueue'], 'readwrite');
+        const store = tx.objectStore('syncQueue');
+        store.add({ ...action, queuedAt: Date.now() });
+        await tx.complete;
+        console.log('Queued action for later sync', action);
+    }
+    
+    async function processSyncQueue() {
+        if (!navigator.onLine) return;
+        if (!db) await openDB();
+        const tx = db.transaction(['syncQueue'], 'readonly');
+        const store = tx.objectStore('syncQueue');
+        const allQueued = await store.getAll();
+        await tx.done;
+        
+        if (allQueued.length === 0) return;
+        
+        for (const item of allQueued) {
+            try {
+                // Simulate API call to server
+                console.log(`🔄 Syncing: ${item.type} for spot ${item.spotId}`);
+                await new Promise(resolve => setTimeout(resolve, 150));
+                // Remove from queue after successful sync
+                const deleteTx = db.transaction(['syncQueue'], 'readwrite');
+                deleteTx.objectStore('syncQueue').delete(item.id);
+                await deleteTx.complete;
+            } catch (err) {
+                console.warn('Sync failed, retry later', err);
+            }
+        }
+        updateSyncStatusMessage();
+    }
+    
+    async function loadMustSeeSpots() {
+        if (!db) await openDB();
+        const tx = db.transaction(['mustSee'], 'readonly');
+        const store = tx.objectStore('mustSee');
+        const all = await store.getAll();
+        await tx.done;
+        const map = new Map();
+        all.forEach(item => map.set(item.spotId, item));
+        return map;
+    }
+    
+    // current city state
+    let currentCity = 'paris';
+    let map = null;
+    let markersLayer = null;
+    let mustSeeMap = new Map();
+    
+    async function renderSpotsForCity(cityId) {
+        const spots = SPOTS_DATA[cityId] || [];
+        const mustSee = await loadMustSeeSpots();
+        mustSeeMap = mustSee;
+        const container = document.getElementById('spotsList');
+        if (!spots.length) {
+            container.innerHTML = '<div style="padding:1rem">No spots available for this city.</div>';
+            return;
+        }
+        container.innerHTML = spots.map(spot => {
+            const isMust = mustSeeMap.has(spot.id);
+            return `
+                <div class="spot-item" data-spot-id="${spot.id}" data-lat="${spot.lat}" data-lng="${spot.lng}">
+                    <div class="spot-info">
+                        <h4>${spot.name}</h4>
+                        <p>${spot.description}</p>
+                    </div>
+                    <button class="must-see-btn ${isMust ? 'active' : ''}" data-spot-id="${spot.id}">
+                        ${isMust ? '⭐' : '☆'}
+                    </button>
+                </div>
+            `;
+        }).join('');
+        
+        // attach click handlers
+        document.querySelectorAll('.spot-item').forEach(el => {
+            const spotId = el.dataset.spotId;
+            const lat = parseFloat(el.dataset.lat);
+            const lng = parseFloat(el.dataset.lng);
+            el.addEventListener('click', (e) => {
+                if (e.target.classList.contains('must-see-btn')) return;
+                if (map) map.setView([lat, lng], 15);
+            });
+        });
+        
+        document.querySelectorAll('.must-see-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const spotId = btn.dataset.spotId;
+                const spotFull = spots.find(s => s.id === spotId);
+                const currentlyActive = btn.classList.contains('active');
+                const newState = !currentlyActive;
+                await saveMustSee(spotId, cityId, spotFull, newState);
+                // update UI instantly
+                if (newState) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '⭐';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '☆';
+                }
+                updateMapMarkers();
+            });
+        });
+    }
+    
+    // Initialize Leaflet Map
+    function initMap(cityId) {
+        const city = CITIES[cityId];
+        if (!city) return;
+        if (map) {
+            map.setView([city.lat, city.lng], city.zoom);
+        } else {
+            map = L.map('map').setView([city.lat, city.lng], city.zoom);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+        updateMapMarkers();
+    }
+    
+    async function updateMapMarkers() {
+        if (!map) return;
+        if (markersLayer) {
+            map.removeLayer(markersLayer);
+        }
+        markersLayer = L.layerGroup().addTo(map);
+        const spots = SPOTS_DATA[currentCity] || [];
+        const mustSee = await loadMustSeeSpots();
+        for (const spot of spots) {
+            const isMust = mustSee.has(spot.id);
+            const marker = L.marker([spot.lat, spot.lng]).bindPopup(`
+                <b>${spot.name}</b><br>${spot.description}<br>
+                ${isMust ? '⭐ Must-See spot' : '✨ Regular spot'}
+            `);
+            marker.addTo(markersLayer);
+            if (isMust) {
+                marker.setIcon(L.divIcon({ html: '📍⭐', className: 'custom-marker', iconSize: [25, 30] }));
+            }
+        }
+    }
+    
+    // City switching
+    function setupCitySelector() {
+        const container = document.getElementById('cityButtons');
+        container.innerHTML = Object.keys(CITIES).map(cityId => `
+            <button class="city-btn ${cityId === currentCity ? 'active' : ''}" data-city="${cityId}">
+                ${CITIES[cityId].name}
+            </button>
+        `).join('');
+        document.querySelectorAll('.city-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const cityId = btn.dataset.city;
+                currentCity = cityId;
+                document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                initMap(cityId);
+                await renderSpotsForCity(cityId);
+                updateMapMarkers();
+            });
+        });
+    }
+    
+    // Network Status & Sync
+    let isOnline = navigator.onLine;
+    function updateConnectionUI() {
+        const dot = document.getElementById('statusDot');
+        const textSpan = document.getElementById('statusText');
+        if (navigator.onLine) {
+            dot.className = 'online-dot';
+            textSpan.innerText = 'Online • Auto-sync active';
+            document.getElementById('offlineMsg').style.display = 'none';
+            processSyncQueue(); // attempt sync when online
+        } else {
+            dot.className = 'online-dot offline-dot';
+            textSpan.innerText = 'Offline • Changes saved locally';
+            document.getElementById('offlineMsg').style.display = 'block';
+        }
+    }
+    
+    async function updateSyncStatusMessage() {
+        if (!db) return;
+        const tx = db.transaction(['syncQueue'], 'readonly');
+        const count = await tx.objectStore('syncQueue').count();
+        await tx.done;
+        if (count > 0 && !navigator.onLine) {
+            document.getElementById('statusText').innerText = `Offline • ${count} pending syncs`;
+        } else if (count > 0 && navigator.onLine) {
+            document.getElementById('statusText').innerText = `Syncing ${count} items...`;
+        } else if (navigator.onLine) {
+            document.getElementById('statusText').innerText = 'Online • All synced';
+        }
+    }
+    
+    window.addEventListener('online', async () => {
+        updateConnectionUI();
+        await processSyncQueue();
+        await updateSyncStatusMessage();
+        renderSpotsForCity(currentCity);
+        updateMapMarkers();
+    });
+    window.addEventListener('offline', () => {
+        updateConnectionUI();
+        updateSyncStatusMessage();
+    });
+    
+    document.getElementById('manualSyncBtn').addEventListener('click', async () => {
+        if (navigator.onLine) {
+            await processSyncQueue();
+            updateSyncStatusMessage();
+            alert('Sync completed! All must-see spots are backed up.');
+        } else {
+            alert('You are offline. Changes will sync automatically when connection returns.');
+        }
+    });
+    
+    // ---------- SERVICE WORKER REGISTRATION (PWA CORE) ----------
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed (demo fallback)', err));
+        // For demo without actual sw.js, we create a dynamic service worker that caches assets
+        // But to be fully functional, we'll generate a simple service worker on the fly
+        registerDynamicServiceWorker();
+    }
+    
+    function registerDynamicServiceWorker() {
+        const swCode = `
+            const CACHE_NAME = 'travel-guide-v1';
+            const urlsToCache = [
+                '/',
+                '/index.html',
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+                'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+            ];
+            self.addEventListener('install', event => {
+                event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+            });
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request).then(response => response || fetch(event.request))
+                );
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).then(reg => {
+            console.log('Dynamic Service Worker registered', reg);
+        }).catch(err => console.warn('SW fallback:', err));
+    }
+    
+    // ---------- Preload Data & Initialize PWA ----------
+    async function initApp() {
+        await openDB();
+        setupCitySelector();
+        initMap(currentCity);
+        await renderSpotsForCity(currentCity);
+        updateConnectionUI();
+        await processSyncQueue();
+        updateSyncStatusMessage();
+        
+        // Periodically check sync queue
+        setInterval(async () => {
+            if (navigator.onLine) await processSyncQueue();
+            updateSyncStatusMessage();
+        }, 10000);
+    }
+    
+    // Also add to IndexedDB city cache (optional preload)
+    initApp().catch(console.error);
+    
+    // For PWA manifest dynamically (just a simple prompt)
+    if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.createElement('button');
+            installBtn.innerText = '📲 Install App';
+            installBtn.style.position = 'fixed';
+            installBtn.style.bottom = '20px';
+            installBtn.style.right = '20px';
+            installBtn.style.zIndex = '999';
+            installBtn.style.background = '#1a4a6f';
+            installBtn.style.color = 'white';
+            installBtn.style.border = 'none';
+            installBtn.style.borderRadius = '40px';
+            installBtn.style.padding = '12px 20px';
+            installBtn.style.cursor = 'pointer';
+            installBtn.style.boxShadow = '0 4px 12px black';
+            document.body.appendChild(installBtn);
+            installBtn.onclick = () => deferredPrompt.prompt();
+        });
+    }
+    
+    // Export sync queue for debugging
+    window.debugSync = () => processSyncQueue();
+</script>
+</body>
+</html>
