@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🇵🇰 AI AVATAR STUDIO | Pakistan Heritage Customizer + AI Portrait Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a2f2a 0%, #064e3b 50%, #1e3a2f 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header with Pakistan Flag Motif */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ffffff, #f9f295, #4caf50);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            margin-top: 0.5rem;
+        }
+
+        .pakistan-badge {
+            background: #01411c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            border-left: 3px solid #f9f295;
+        }
+
+        /* Main Grid: Left Customizer, Right Preview + AI */
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.8rem;
+        }
+
+        /* Customizer Panel */
+        .customizer-panel {
+            background: rgba(10, 25, 20, 0.75);
+            backdrop-filter: blur(16px);
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.2rem 0 1rem 0;
+            color: #e9f5e9;
+            border-left: 4px solid #f9f295;
+            padding-left: 12px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .style-option {
+            background: #1f3a2f;
+            border: 2px solid #2d5a45;
+            border-radius: 1rem;
+            padding: 0.6rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+        }
+
+        .style-option:hover {
+            background: #2c6e4f;
+            transform: translateY(-2px);
+        }
+
+        .style-option.active {
+            background: #4caf50;
+            border-color: #f9f295;
+            color: white;
+            box-shadow: 0 0 12px rgba(76,175,80,0.5);
+        }
+
+        .style-icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* Canvas Preview */
+        .preview-panel {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(249, 242, 149, 0.5);
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        canvas {
+            background: #1e2a2a;
+            border-radius: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 3px solid #f9f295;
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+        }
+
+        .ai-section {
+            background: #0f2c21;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #f9f295, #e9c468);
+            color: #1e3a2f;
+            font-weight: bold;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 60px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-bottom: 1rem;
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(249,242,149,0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .ai-result {
+            background: #071a12;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .ai-result img {
+            max-width: 100%;
+            border-radius: 1rem;
+            max-height: 280px;
+            margin-top: 10px;
+            border: 2px solid #f9f295;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #f9f295;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .prompt-preview {
+            font-size: 0.7rem;
+            color: #8fbbaa;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        /* new feature: cultural accessories & pakistan data */
+        .feature-badge {
+            background: #f9f29520;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 900px) {
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>🇵🇰 AI AVATAR STUDIO <span style="font-size: 1.8rem;">🎭</span></h1>
+        <div class="subtitle">Customize your Desi Avatar • Pakistan Heritage Collection • AI Portrait Generation</div>
+        <div class="pakistan-badge">✨ NEW: Ajrak Prints • Peshawari Chappal • Sindhi Topi • AI Enhanced ✨</div>
+    </div>
+
+    <div class="studio-grid">
+        <!-- LEFT: Customizer Panel -->
+        <div class="customizer-panel">
+            <div class="section-title">👤 1. Choose Hairstyle</div>
+            <div class="options-grid" id="hairstyleGrid">
+                <div class="style-option" data-hairstyle="modern_fade"><span class="style-icon">💈</span>Modern Fade</div>
+                <div class="style-option" data-hairstyle="traditional_man bun"><span class="style-icon">🧔</span>Man Bun</div>
+                <div class="style-option" data-hairstyle="long_curly"><span class="style-icon">🦱</span>Long Curly</div>
+                <div class="style-option" data-hairstyle="bald"><span class="style-icon">✨</span>Bald</div>
+                <div class="style-option" data-hairstyle="patti_wavy"><span class="style-icon">🌊</span>Wavy (Patti)</div>
+            </div>
+
+            <div class="section-title">👘 2. Traditional Clothing (Pakistan)</div>
+            <div class="options-grid" id="clothingGrid">
+                <div class="style-option" data-clothing="shalwar_kameez"><span class="style-icon">👔</span>Shalwar Kameez</div>
+                <div class="style-option" data-clothing="waistcoat_kurta"><span class="style-icon">🧥</span>Waistcoat Kurta</div>
+                <div class="style-option" data-clothing="sherwani"><span class="style-icon">👑</span>Sherwani (Royal)</div>
+                <div class="style-option" data-clothing="khal_kameez"><span class="style-icon">💚</span>Khal Kameez</div>
+                <div class="style-option" data-clothing="modern_formal"><span class="style-icon">👔</span>Modern Formal</div>
+            </div>
+
+            <div class="section-title">🧣 3. Accessories & Cultural Items</div>
+            <div class="options-grid" id="accessoriesGrid">
+                <div class="style-option" data-accessory="ajrak_dupatta"><span class="style-icon">🧣</span>Ajrak Shawl</div>
+                <div class="style-option" data-accessory="peshawari_chappal"><span class="style-icon">👞</span>Peshawari Chappal</div>
+                <div class="style-option" data-accessory="sindhi_topi"><span class="style-icon">🎩</span>Sindhi Topi</div>
+                <div class="style-option" data-accessory="sunglasses"><span class="style-icon">🕶️</span>Sunglasses</div>
+                <div class="style-option" data-accessory="truck_art_hat"><span class="style-icon">🚛🎨</span>Truck Art Cap</div>
+                <div class="style-option" data-accessory="none"><span class="style-icon">❌</span>None</div>
+            </div>
+
+            <div class="section-title">🎨 4. Background Theme (Pakistani Scenery)</div>
+            <div class="options-grid" id="bgGrid">
+                <div class="style-option" data-bg="northern_areas"><span class="style-icon">🏔️</span>Northern Areas</div>
+                <div class="style-option" data-bg="badshahi_mosque"><span class="style-icon">🕌</span>Badshahi Mosque</div>
+                <div class="style-option" data-bg="karachi_sunset"><span class="style-icon">🌆</span>Karachi Sunset</div>
+                <div class="style-option" data-bg="lahori_fort"><span class="style-icon">🏰</span>Lahori Fort</div>
+                <div class="style-option" data-bg="abstract_desert"><span class="style-icon">🏜️</span>Thar Desert</div>
+            </div>
+            <div class="feature-badge">⭐ NEW FEATURE: Real-time canvas avatar render + AI prompt generation with Pakistan cultural context</div>
+        </div>
+
+        <!-- RIGHT: Canvas Preview & AI Generation -->
+        <div class="preview-panel">
+            <div class="canvas-container">
+                <canvas id="avatarCanvas" width="400" height="400" style="width:100%; max-width:400px; height:auto; background:#2c3e2f;"></canvas>
+            </div>
+            
+            <div class="ai-section">
+                <button class="generate-btn" id="generateAIBtn">✨ Generate AI Masterpiece ✨</button>
+                <div id="aiResultArea" class="ai-result">
+                    <div style="color:#cbd5e6; font-size:0.85rem;">🖌️ AI Portrait Preview</div>
+                    <div id="aiImageContainer">✨ Click generate to create professional avatar based on your selections + Pakistan cultural style</div>
+                    <div id="promptDisplay" class="prompt-preview"></div>
+                </div>
+            </div>
+            <div class="feature-badge">🚀 Powered by Stable Diffusion XL (simulated API) • Custom prompt engineering with Desi aesthetics • Real-time canvas avatar preview</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================ PAKISTAN AI AVATAR GENERATOR ================
+    // Features:
+    // 1) Canvas-based 2D avatar preview (dynamic visual feedback)
+    // 2) State machine for avatar customization (hair, clothing, accessories, bg)
+    // 3) AI Portrait Generator (Simulated Stable Diffusion API with advanced prompt building based on selections)
+    // 4) Pakistan cultural dataset: ajrak, truck art, northern areas etc
+    // 5) NEW: Real-time prompt engineering with Urdu/desi flair, plus export & loading states
+    
+    // State management
+    const state = {
+        hairstyle: "modern_fade",
+        clothing: "shalwar_kameez",
+        accessory: "ajrak_dupatta",
+        background: "northern_areas"
+    };
+    
+    // DOM Elements
+    const canvas = document.getElementById('avatarCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Helper: Draw Avatar based on current state (Canvas illustration with cultural details)
+    function drawAvatar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Background based on selection
+        drawBackground(state.background);
+        
+        // Face base (warm skin)
+        ctx.fillStyle = "#E0B88A";
+        ctx.beginPath();
+        ctx.arc(200, 180, 70, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#C69C6D";
+        ctx.beginPath();
+        ctx.ellipse(200, 200, 68, 78, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // Eyes
+        ctx.fillStyle = "#2c2c2c";
+        ctx.beginPath();
+        ctx.arc(165, 155, 6, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(235, 155, 6, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(162, 152, 2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(232, 152, 2, 0, Math.PI*2);
+        ctx.fill();
+        
+        // Smile
+        ctx.beginPath();
+        ctx.arc(200, 190, 28, 0.1, Math.PI - 0.1);
+        ctx.strokeStyle = "#8B5A2B";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Hairstyle rendering
+        drawHairstyle(state.hairstyle);
+        
+        // Clothing render
+        drawClothing(state.clothing);
+        
+        // Accessories
+        drawAccessory(state.accessory);
+        
+        // Add cultural border
+        ctx.font = "bold 14px 'Segoe UI'";
+        ctx.fillStyle = "#f9f295";
+        ctx.shadowBlur = 0;
+        ctx.fillText("🇵🇰 PAKISTAN EDITION", 140, 380);
+    }
+    
+    function drawBackground(bgType) {
+        if (bgType === "northern_areas") {
+            ctx.fillStyle = "#2c5a3a";
+            ctx.fillRect(0,0,400,400);
+            ctx.fillStyle = "#86bf8c";
+            ctx.fillRect(0,280,400,120);
+            ctx.fillStyle = "white";
+            for(let i=0;i<30;i++) ctx.fillRect(40+i*12, 150, 2, 60);
+        } else if (bgType === "badshahi_mosque") {
+            ctx.fillStyle = "#bc9a6c";
+            ctx.fillRect(0,0,400,400);
+            ctx.fillStyle = "#d4af7a";
+            ctx.beginPath();
+            ctx.rect(100,180,200,150);
+            ctx.fill();
+            ctx.fillStyle = "#8b5a2b";
+            ctx.fillRect(180,120,40,60);
+        } else if (bgType === "karachi_sunset") {
+            const grad = ctx.createLinearGradient(0,0,0,400);
+            grad.addColorStop(0,"#f7b733");
+            grad.addColorStop(1,"#fc4a1a");
+            ctx.fillStyle=grad;
+            ctx.fillRect(0,0,400,400);
+            ctx.fillStyle="#2c3e50";
+            for(let i=0;i<15;i++) ctx.fillRect(30+i*25, 280, 12, 100);
+        } else if (bgType === "lahori_fort") {
+            ctx.fillStyle = "#b87c4f";
+            ctx.fillRect(0,0,400,400);
+            ctx.fillStyle = "#9b5e2c";
+            ctx.fillRect(50,200,300,130);
+        } else {
+            ctx.fillStyle = "#c2a575";
+            ctx.fillRect(0,0,400,400);
+            ctx.fillStyle = "#e8c468";
+            for(let i=0;i<50;i++) ctx.fillRect(Math.random()*400, Math.random()*400, 2,2);
+        }
+    }
+    
+    function drawHairstyle(style) {
+        ctx.fillStyle = "#2c1a0e";
+        if(style === "modern_fade") {
+            ctx.beginPath();
+            ctx.ellipse(200, 135, 55, 32, 0, 0, Math.PI*2);
+            ctx.fill();
+        } else if(style === "traditional_man bun") {
+            ctx.beginPath();
+            ctx.ellipse(200, 128, 58, 42, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle="#4a2a1a";
+            ctx.beginPath();
+            ctx.arc(222, 115, 12, 0, Math.PI*2);
+            ctx.fill();
+        } else if(style === "long_curly") {
+            ctx.fillStyle = "#3a2418";
+            for(let i=0;i<12;i++) ctx.beginPath(), ctx.arc(170+i*5, 130, 8, 0, Math.PI*2), ctx.fill();
+        } else {
+            ctx.fillStyle = "#d9b48b";
+            ctx.beginPath();
+            ctx.ellipse(200, 140, 45, 20, 0, 0, Math.PI*2);
+            ctx.fill();
+        }
+    }
+    
+    function drawClothing(clothing) {
+        ctx.fillStyle = "#2f6b47";
+        if(clothing === "shalwar_kameez") {
+            ctx.fillStyle = "#2c7a47";
+            ctx.beginPath();
+            ctx.rect(120, 210, 160, 130);
+            ctx.fill();
+            ctx.fillStyle = "#f9f295";
+            ctx.fillRect(170, 210, 60, 20);
+        } else if(clothing === "waistcoat_kurta") {
+            ctx.fillStyle = "#2b4f2b";
+            ctx.fillRect(130,210,140,120);
+            ctx.fillStyle = "#a56b2f";
+            ctx.fillRect(140,220,30,100);
+            ctx.fillRect(230,220,30,100);
+        } else if(clothing === "sherwani") {
+            ctx.fillStyle = "#c9ae74";
+            ctx.fillRect(110,200,180,140);
+            ctx.fillStyle = "#e4c483";
+            for(let i=0;i<5;i++) ctx.fillRect(150+i*20, 220, 8, 30);
+        } else {
+            ctx.fillStyle = "#3b7b5e";
+            ctx.fillRect(120,210,160,120);
+        }
+    }
+    
+    function drawAccessory(acc) {
+        if(acc === "ajrak_dupatta") {
+            ctx.fillStyle = "#b02c2c";
+            ctx.fillRect(160, 100, 80, 120);
+            ctx.fillStyle = "#f4c542";
+            for(let i=0;i<8;i++) ctx.fillRect(168+i*8, 130, 2, 40);
+        } else if(acc === "peshawari_chappal") {
+            ctx.fillStyle = "#5d3a1a";
+            ctx.fillRect(140, 330, 40, 20);
+            ctx.fillRect(220, 330, 40, 20);
+        } else if(acc === "sindhi_topi") {
+            ctx.fillStyle = "#ac4e2b";
+            ctx.beginPath();
+            ctx.ellipse(200, 108, 38, 22, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = "#f7d44a";
+            ctx.fillRect(180,98,40,8);
+        } else if(acc === "sunglasses") {
+            ctx.fillStyle = "#111";
+            ctx.fillRect(150,145,35,18);
+            ctx.fillRect(215,145,35,18);
+        } else if(acc === "truck_art_hat") {
+            ctx.fillStyle = "#f7b32b";
+            ctx.fillRect(165, 95, 70, 25);
+            ctx.fillStyle = "red";
+            ctx.fillRect(180, 102, 40, 12);
+        }
+    }
+    
+    // Active state for UI selection
+    function setupEventListeners() {
+        document.querySelectorAll('[data-hairstyle]').forEach(el => {
+            el.addEventListener('click', () => {
+                state.hairstyle = el.dataset.hairstyle;
+                updateActiveClass(el.parentElement.children, el);
+                drawAvatar();
+            });
+        });
+        document.querySelectorAll('[data-clothing]').forEach(el => {
+            el.addEventListener('click', () => {
+                state.clothing = el.dataset.clothing;
+                updateActiveClass(el.parentElement.children, el);
+                drawAvatar();
+            });
+        });
+        document.querySelectorAll('[data-accessory]').forEach(el => {
+            el.addEventListener('click', () => {
+                state.accessory = el.dataset.accessory;
+                updateActiveClass(el.parentElement.children, el);
+                drawAvatar();
+            });
+        });
+        document.querySelectorAll('[data-bg]').forEach(el => {
+            el.addEventListener('click', () => {
+                state.background = el.dataset.bg;
+                updateActiveClass(el.parentElement.children, el);
+                drawAvatar();
+            });
+        });
+    }
+    
+    function updateActiveClass(collection, activeEl) {
+        Array.from(collection).forEach(el => el.classList.remove('active'));
+        activeEl.classList.add('active');
+    }
+    
+    // ============ AI GENERATOR (Simulated Stable Diffusion API with Pakistan Data) ============
+    const aiBtn = document.getElementById('generateAIBtn');
+    const aiImageContainer = document.getElementById('aiImageContainer');
+    const promptDisplaySpan = document.getElementById('promptDisplay');
+    
+    // Helper: Create rich prompt based on state + Pakistan cultural context
+    function buildAIPrompt() {
+        let hairDesc = "";
+        if(state.hairstyle === "modern_fade") hairDesc = "modern fade haircut";
+        else if(state.hairstyle === "traditional_man bun") hairDesc = "traditional man bun with beard";
+        else if(state.hairstyle === "long_curly") hairDesc = "long curly black hair";
+        else hairDesc = "short hair, neat";
+        
+        let clothingDesc = "";
+        if(state.clothing === "shalwar_kameez") clothingDesc = "elegant white shalwar kameez with embroidery";
+        else if(state.clothing === "waistcoat_kurta") clothingDesc = "traditional waistcoat over kurta, Pakistani style";
+        else if(state.clothing === "sherwani") clothingDesc = "royal sherwani with gold buttons";
+        else clothingDesc = "formal modern Pakistani attire";
+        
+        let accessoryDesc = "";
+        if(state.accessory === "ajrak_dupatta") accessoryDesc = "wearing ajrak dupatta (Sindhi cultural shawl)";
+        else if(state.accessory === "peshawari_chappal") accessoryDesc = "peshawari chappal leather sandals";
+        else if(state.accessory === "sindhi_topi") accessoryDesc = "Sindhi cap with embroidery";
+        else if(state.accessory === "truck_art_hat") accessoryDesc = "colorful truck art style cap";
+        else if(state.accessory === "sunglasses") accessoryDesc = "modern sunglasses";
+        else accessoryDesc = "minimal accessories";
+        
+        let bgDesc = "";
+        if(state.background === "northern_areas") bgDesc = "scenic northern Pakistan mountains, Hunza valley";
+        else if(state.background === "badshahi_mosque") bgDesc = "Badshahi Mosque Lahore background, Mughal architecture";
+        else if(state.background === "karachi_sunset") bgDesc = "Karachi sunset skyline with ocean";
+        else if(state.background === "lahori_fort") bgDesc = "Lahore Fort historical monument";
+        else bgDesc = "Thar desert dunes with vibrant sunset";
+        
+        const prompt = `Professional high quality portrait of a Pakistani person, ${hairDesc}, ${clothingDesc}, ${accessoryDesc}, ${bgDesc}, detailed realistic art, cinematic lighting, 4k, cultural heritage, beautiful desi features, intricate details, rich colors, Pakistan flag subtle motif, award-winning photography style, sharp focus, warm atmosphere`;
+        return prompt;
+    }
+    
+    async function generateAIPortrait() {
+        const prompt = buildAIPrompt();
+        promptDisplaySpan.innerHTML = `🎨 AI Prompt: "${prompt.substring(0, 130)}..."`;
+        aiImageContainer.innerHTML = '<div class="loading"></div> Generating AI Portrait... (simulated API with Pakistan style)';
+        aiBtn.disabled = true;
+        
+        // Simulate AI API call (Stable Diffusion) - in real app replace with actual endpoint
+        // Using a robust placeholder with Pakistan-themed generative art simulation
+        // This mimics async fetch to an AI image generation service.
+        await new Promise(resolve => setTimeout(resolve, 2200));
+        
+        // Since actual Stable Diffusion requires API keys, we create a Pakistan-themed canvas-generated image as a simulated result (advanced feature)
+        // But for realism: we generate a dataURL composite that represents AI generated art.
+        // This simulates an AI output based on selections.
+        const simImage = await simulateAIImage(prompt);
+        aiImageContainer.innerHTML = `<img src="${simImage}" alt="AI Generated Portrait Pakistan Style" style="max-width:100%; border-radius: 16px;">`;
+        aiBtn.disabled = false;
+    }
+    
+    // Simulate image generation based on prompt (AI-like composition canvas)
+    function simulateAIImage(prompt) {
+        return new Promise((resolve) => {
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = 512;
+            offCanvas.height = 512;
+            const offCtx = offCanvas.getContext('2d');
+            // Create artistic representation based on state selections
+            offCtx.fillStyle = "#0a2f2a";
+            offCtx.fillRect(0,0,512,512);
+            // draw cultural elements
+            offCtx.font = "bold 32px 'Segoe UI'";
+            offCtx.fillStyle = "#f9f295";
+            offCtx.fillText("🇵🇰", 220, 100);
+            offCtx.font = "20px monospace";
+            offCtx.fillStyle = "#e0c878";
+            offCtx.fillText("AI Avatar Studio", 150, 480);
+            offCtx.fillStyle = "#b3e4c5";
+            offCtx.font = "14px sans-serif";
+            offCtx.fillText(`Style: ${state.clothing} + ${state.accessory}`, 50, 400);
+            // draw silhouette
+            offCtx.fillStyle = "#e0b88a";
+            offCtx.beginPath();
+            offCtx.arc(256, 240, 90, 0, Math.PI*2);
+            offCtx.fill();
+            offCtx.fillStyle = "#2c6e4f";
+            offCtx.fillRect(180, 320, 150, 120);
+            // final data url
+            const dataURL = offCanvas.toDataURL();
+            resolve(dataURL);
+        });
+    }
+    
+    // NEW FEATURE: Real-time state change updates AI prompt preview
+    function updatePromptPreview() {
+        const p = buildAIPrompt();
+        promptDisplaySpan.innerHTML = `📝 AI Prompt Preview: ${p.substring(0, 100)}...`;
+    }
+    
+    // bind AI generate
+    aiBtn.addEventListener('click', generateAIPortrait);
+    
+    // override drawAvatar to also update prompt preview
+    const originalDraw = drawAvatar;
+    window.drawAvatar = function() {
+        originalDraw();
+        updatePromptPreview();
+    };
+    drawAvatar = window.drawAvatar;
+    
+    // Initialize with default active classes
+    function setDefaultActive() {
+        document.querySelector('[data-hairstyle="modern_fade"]')?.classList.add('active');
+        document.querySelector('[data-clothing="shalwar_kameez"]')?.classList.add('active');
+        document.querySelector('[data-accessory="ajrak_dupatta"]')?.classList.add('active');
+        document.querySelector('[data-bg="northern_areas"]')?.classList.add('active');
+    }
+    
+    setupEventListeners();
+    setDefaultActive();
+    drawAvatar();
+    updatePromptPreview();
+    
+    // Additional export feature: Add a nice status
+    console.log("🇵🇰 AI Avatar Studio Loaded — Pakistan Cultural Dataset Enabled");
+</script>
+</body>
+</html>
